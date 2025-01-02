@@ -20,8 +20,18 @@ npr() {
     if [ $# -eq 1 ]; then
         COMPREPLY=($(compgen -W "$NODE_SCRIPTS" -- "${COMP_WORDS[1]}"))
     fi
+
+
+    # If the first argument is "install" or "init", just run the command
     
+    if [ "$1" == "install" ] || [ "$1" == "init" ]; then
+        echo "npm $@"
+        npm "$@"
+        return
+    fi
+
     # If there are more than one argument, just run the command
+    echo "npm run $@"
     npm run "$@"
 }
 
@@ -30,7 +40,7 @@ _npr() {
     if [ ! -f "$PACKAGE_JSON" ]; then
         return
     fi
-    NODE_SCRIPTS=$(node -e "console.log(Object.keys(require('$PACKAGE_JSON').scripts || {}).join(' '))")
+    NODE_SCRIPTS=$(node -e "console.log(Object.keys(require('$PACKAGE_JSON').scripts || {}).join(' '), 'install', 'init')")
     local cur=${COMP_WORDS[COMP_CWORD]}
     COMPREPLY=($(compgen -W "$NODE_SCRIPTS" -- "$cur"))
 }
