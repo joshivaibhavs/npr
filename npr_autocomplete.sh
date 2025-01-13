@@ -29,6 +29,12 @@ npr() {
         npm "$@"
         return
     fi
+    if [ "$1" == "file" ]; then
+        COMMANDS="${@//file/}"
+        echo "node $COMMANDS"
+        node $COMMANDS
+        return
+    fi
 
     # If there are more than one argument, just run the command
     echo "npm run $@"
@@ -38,11 +44,18 @@ npr() {
 _npr() {
     PACKAGE_JSON="$(pwd)/package.json"
     if [ ! -f "$PACKAGE_JSON" ]; then
-        return
+        NODE_SCRIPTS="init file"
+    else
+        NODE_SCRIPTS=$(node -e "console.log(Object.keys(require('$PACKAGE_JSON').scripts || {}).join(' '), 'install', 'file')")
     fi
-    NODE_SCRIPTS=$(node -e "console.log(Object.keys(require('$PACKAGE_JSON').scripts || {}).join(' '), 'install', 'init')")
+
     local cur=${COMP_WORDS[COMP_CWORD]}
-    COMPREPLY=($(compgen -W "$NODE_SCRIPTS" -- "$cur"))
+    
+    if [[ "${COMP_WORDS[1]}" == "file" ]]; then
+        COMPREPLY=($(compgen -f -- "$cur"))
+    else
+        COMPREPLY=($(compgen -W "$NODE_SCRIPTS" -- "$cur"))
+    fi
 }
 
 complete -F _npr npr
